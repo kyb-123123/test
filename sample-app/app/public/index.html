@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>품목 관리 시스템</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+    header {
+      background: #1a73e8; color: white;
+      padding: 20px 40px;
+      font-size: 22px; font-weight: bold;
+    }
+
+    .container { max-width: 960px; margin: 40px auto; padding: 0 20px; }
+
+    h2 { margin-bottom: 16px; font-size: 18px; color: #555; }
+
+    .cards { display: flex; gap: 20px; flex-wrap: wrap; }
+
+    .card {
+      background: white; border-radius: 12px;
+      padding: 24px; flex: 1; min-width: 260px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      border-left: 5px solid #1a73e8;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+    .card .manufacturer { font-size: 12px; color: #1a73e8; font-weight: 600; margin-bottom: 6px; }
+    .card .item-name { font-size: 17px; font-weight: bold; margin-bottom: 8px; }
+    .card .meta { font-size: 13px; color: #777; }
+    .card .stock { margin-top: 10px; font-size: 14px; color: #333; }
+    .card .stock span { font-weight: bold; color: #e53935; }
+
+    /* 상세 패널 */
+    #detail { display: none; margin-top: 40px; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .panel {
+      background: white; border-radius: 12px; padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .panel h3 { font-size: 15px; color: #1a73e8; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; }
+
+    .info-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px solid #f5f5f5; }
+    .info-row .label { color: #888; }
+    .info-row .value { font-weight: 600; }
+
+    pre {
+      background: #1e1e1e; color: #ce9178;
+      border-radius: 8px; padding: 16px;
+      font-size: 13px; overflow-x: auto;
+      white-space: pre-wrap; word-break: break-all;
+    }
+
+    .flow-panel { grid-column: 1 / -1; }
+
+    .mermaid { margin-top: 8px; }
+
+    .close-btn {
+      display: block; margin: 20px auto 0;
+      background: #eee; border: none; border-radius: 8px;
+      padding: 10px 28px; cursor: pointer; font-size: 14px;
+    }
+    .close-btn:hover { background: #ddd; }
+  </style>
+</head>
+<body>
+
+<header>품목 관리 시스템 — 멀티테넌트</header>
+
+<div class="container">
+  <h2>재고 상위 품목 TOP 3 (클릭하면 흐름 확인)</h2>
+  <div class="cards" id="cards">로딩 중...</div>
+
+  <div id="detail">
+    <div class="detail-grid">
+      <div class="panel" id="info-panel">
+        <h3>품목 상세</h3>
+        <div id="info-content"></div>
+      </div>
+
+      <div class="panel">
+        <h3>실행 쿼리</h3>
+        <pre id="query-content"></pre>
+      </div>
+
+      <div class="panel flow-panel">
+        <h3>데이터 흐름</h3>
+        <div class="mermaid" id="flow-diagram"></div>
+      </div>
+    </div>
+    <button class="close-btn" onclick="closeDetail()">닫기</button>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+  async function loadTopItems() {
+    const res = await fetch('/api/top-items');
+    const items = await res.json();
+    const container = document.getElementById('cards');
+    container.innerHTML = '';
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="manufacturer">${item.manufacturer_name} (${item.manufacturer_code})</div>
+        <div class="item-name">${item.item_name}</div>
+        <div class="meta">${item.item_code} · ${item.category}</div>
+        <div class="stock">재고: <span>${item.stock_qty} ${item.unit}</span> · 단가: ${item.unit_price}원</div>
+      `;
+      card.onclick = () => loadDetail(item.id);
+      container.appendChild(card);
+    });
+  }
+
+  async function loadDetail(id) {
+    const res = await fetch(`/api/item/${id}`);
+    const { item, query } = await res.json();
+
+    // 품목 정보
+    document.getElementById('info-content').innerHTML = `
+      <div class="info-row"><span class="label">업체명</span><span class="value">${item.manufacturer_name}</span></div>
+      <div class="info-row"><span class="label">업체코드</span><span class="value">${item.manufacturer_code}</span></div>
+      <div class="info-row"><span class="label">품목코드</span><span class="value">${item.item_code}</span></div>
+      <div class="info-row"><span class="label">품목명</span><span class="value">${item.item_name}</span></div>
+      <div class="info-row"><span class="label">카테고리</span><span class="value">${item.category}</span></div>
+      <div class="info-row"><span class="label">단가</span><span class="value">${item.unit_price_fmt}원</span></div>
+      <div class="info-row"><span class="label">재고</span><span class="value">${item.stock_qty} ${item.unit}</span></div>
+      <div class="info-row"><span class="label">국가</span><span class="value">${item.country}</span></div>
+    `;
+
+    // 쿼리
+    document.getElementById('query-content').textContent = query;
+
+    // Mermaid 흐름도
+    const flowEl = document.getElementById('flow-diagram');
+    const diagramText = `flowchart LR
+    A[사용자 요청] --> B[API 서버]
+    B --> C[manufacturer_id = ${item.manufacturer_id} 필터]
+    C --> D[(MySQL\\nitem 테이블)]
+    D --> E[JOIN manufacturer]
+    E --> F[결과 반환]
+    F --> G[화면 표시\\n${item.item_name}]`;
+
+    flowEl.removeAttribute('data-processed');
+    flowEl.textContent = diagramText;
+    await mermaid.run({ nodes: [flowEl] });
+
+    document.getElementById('detail').style.display = 'block';
+    document.getElementById('detail').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeDetail() {
+    document.getElementById('detail').style.display = 'none';
+  }
+
+  loadTopItems();
+</script>
+</body>
+</html>
