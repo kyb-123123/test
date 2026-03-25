@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>VS Code Git 가이드</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1e1e1e; color: #d4d4d4; padding: 30px; }
+    h1 { color: #4fc3f7; font-size: 2rem; margin-bottom: 10px; }
+    .subtitle { color: #888; margin-bottom: 30px; }
+    .section { background: #252526; border-left: 4px solid #4fc3f7; border-radius: 6px; padding: 20px; margin-bottom: 24px; }
+    .section h2 { color: #4fc3f7; font-size: 1.2rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .badge { background: #4fc3f7; color: #1e1e1e; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+    .steps { list-style: none; counter-reset: step; }
+    .steps li { counter-increment: step; padding: 8px 0 8px 36px; position: relative; border-bottom: 1px solid #333; }
+    .steps li:last-child { border-bottom: none; }
+    .steps li::before { content: counter(step); position: absolute; left: 0; top: 8px; background: #4fc3f7; color: #1e1e1e; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; }
+    .code-block { background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 14px 16px; margin-top: 14px; font-family: 'Consolas', monospace; font-size: 0.88rem; }
+    .code-block .comment { color: #6a9955; }
+    .code-block .cmd { color: #9cdcfe; display: block; margin: 3px 0; }
+    .tip { background: #2d2d1e; border-left: 4px solid #ffd700; padding: 10px 14px; border-radius: 4px; margin-top: 12px; font-size: 0.88rem; color: #ffd700; }
+    .btn-demo { display: inline-block; background: #0e639c; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.82rem; margin: 2px; }
+    .shortcut { background: #3c3c3c; color: #ce9178; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; }
+    .conflict-box { background: #1a1a1a; border: 1px solid #555; border-radius: 4px; padding: 12px; margin: 12px 0; font-family: monospace; font-size: 0.85rem; line-height: 1.8; }
+    .conflict-head { color: #f44747; }
+    .conflict-sep { color: #888; }
+    .conflict-incoming { color: #4ec9b0; }
+    h1 span { color: #ffd700; }
+  </style>
+</head>
+<body>
+
+  <h1>VS Code <span>Git</span> 가이드</h1>
+  <p class="subtitle">초보자를 위한 단계별 가이드</p>
+
+  <!-- 브랜치 -->
+  <div class="section">
+    <h2><span class="badge">01</span> 브랜치 만들기 & 전환</h2>
+    <ol class="steps">
+      <li>왼쪽 하단 브랜치 이름 클릭 (예: <code>main</code>)</li>
+      <li><strong>+ Create new branch</strong> 클릭</li>
+      <li>브랜치 이름 입력 후 <span class="shortcut">Enter</span></li>
+      <li>다른 브랜치로 전환하려면 같은 곳에서 이름 클릭</li>
+    </ol>
+    <div class="code-block">
+      <span class="comment"># 브랜치 만들고 바로 이동</span>
+      <span class="cmd">git checkout -b 브랜치이름</span>
+      <span class="comment"># 기존 브랜치로 전환</span>
+      <span class="cmd">git checkout main</span>
+    </div>
+  </div>
+
+  <!-- 커밋 & 푸시 -->
+  <div class="section">
+    <h2><span class="badge">02</span> 커밋 & 푸시</h2>
+    <ol class="steps">
+      <li><span class="shortcut">Ctrl + Shift + G</span> → 소스 제어 열기</li>
+      <li>변경 파일 옆 <strong>+</strong> 클릭 → Staged Changes로 이동</li>
+      <li>상단 메시지 입력란에 커밋 메시지 작성</li>
+      <li><span class="shortcut">Ctrl + Enter</span> → 커밋 완료</li>
+      <li>상단 <strong>···</strong> 메뉴 → <strong>Push</strong> 클릭</li>
+    </ol>
+    <div class="code-block">
+      <span class="cmd">git add .</span>
+      <span class="cmd">git commit -m "커밋 메시지"</span>
+      <span class="cmd">git push origin 브랜치이름</span>
+    </div>
+  </div>
+
+  <!-- 충돌 해결 -->
+  <div class="section">
+    <h2><span class="badge">03</span> 충돌(Conflict) 해결</h2>
+    <ol class="steps">
+      <li><span class="shortcut">Ctrl + Shift + G</span> → Changes에서 <strong>C</strong> 표시 파일 클릭</li>
+      <li>충돌 파일이 열리면 아래와 같은 마커 확인</li>
+      <li>충돌 부분 위 버튼 중 하나 선택</li>
+      <li>저장 후 커밋</li>
+    </ol>
+    <div class="conflict-box">
+      <span class="conflict-head">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br>
+      내 로컬 변경 내용<br>
+      <span class="conflict-sep">=======</span><br>
+      <span class="conflict-incoming">원격(상대방) 변경 내용</span><br>
+      <span class="conflict-incoming">&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</span>
+    </div>
+    <div style="margin: 10px 0;">
+      <span class="btn-demo">Accept Current Change</span> 내 것 유지<br><br>
+      <span class="btn-demo">Accept Incoming Change</span> 상대방 것 선택<br><br>
+      <span class="btn-demo">Accept Both Changes</span> 둘 다 합치기
+    </div>
+    <div class="code-block">
+      <span class="comment"># 충돌 해결 후</span>
+      <span class="cmd">git add .</span>
+      <span class="cmd">git rebase --continue</span>
+      <span class="cmd">git push origin main</span>
+    </div>
+    <div class="tip">💡 pull 충돌이면 <code>git merge --continue</code>, rebase 충돌이면 <code>git rebase --continue</code></div>
+  </div>
+
+  <!-- 체리픽 -->
+  <div class="section">
+    <h2><span class="badge">04</span> 체리픽 (Cherry-pick)</h2>
+    <ol class="steps">
+      <li>가져올 커밋 해시 확인 (<span class="shortcut">Ctrl + Shift + P</span> → <code>git log</code>)</li>
+      <li>main 브랜치로 이동</li>
+      <li>터미널에서 cherry-pick 실행</li>
+      <li>충돌 나면 해결 후 <code>git cherry-pick --continue</code></li>
+    </ol>
+    <div class="code-block">
+      <span class="cmd">git checkout main</span>
+      <span class="cmd">git cherry-pick 커밋해시</span>
+      <span class="comment"># 충돌 시</span>
+      <span class="cmd">git add .</span>
+      <span class="cmd">git cherry-pick --continue</span>
+      <span class="cmd">git push origin main</span>
+    </div>
+    <div class="tip">💡 커밋 해시는 git log --oneline 으로 확인</div>
+  </div>
+
+  <!-- Pull & Fetch -->
+  <div class="section">
+    <h2><span class="badge">05</span> Pull & Fetch</h2>
+    <ol class="steps">
+      <li>소스 제어 <strong>···</strong> 메뉴 → <strong>Pull</strong> 또는 <strong>Fetch</strong></li>
+      <li>또는 왼쪽 하단 새로고침 아이콘 클릭</li>
+    </ol>
+    <div class="code-block">
+      <span class="comment"># 가져오면서 바로 합치기</span>
+      <span class="cmd">git pull origin main</span>
+      <span class="comment"># 깔끔하게 rebase로 합치기</span>
+      <span class="cmd">git pull --rebase origin main</span>
+      <span class="comment"># 확인만 하고 합치지 않기</span>
+      <span class="cmd">git fetch origin</span>
+    </div>
+    <div class="tip">💡 pull = fetch + merge / pull --rebase = fetch + rebase</div>
+  </div>
+
+</body>
+</html>
